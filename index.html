@@ -197,7 +197,13 @@ header, main, footer{
 }
 
 #estadoFichajeSemana.estado-fichado {
-    border-left: 5px solid #0078d4;
+    border-left: 5px solid #16a34a;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+#estadoFichajeSemana.estado-fichado .estado-detalle {
+    color: #166534;
 }
 
 #estadoFichajeSemana.estado-pendiente {
@@ -208,6 +214,16 @@ header, main, footer{
 
 #estadoFichajeSemana.estado-pendiente .estado-detalle {
     color: #dc2626;
+}
+
+#estadoFichajeSemana.estado-no-corresponde {
+    border-left: 5px solid #0078d4;
+    background: #f0f7ff;
+    border-color: #bae6fd;
+}
+
+#estadoFichajeSemana.estado-no-corresponde .estado-detalle {
+    color: #0369a1;
 }
 
 #estadoFichajeSemana.estado-bloqueado {
@@ -548,7 +564,7 @@ function inicializarListaSocios() {
             <option>André</option>
             <option>Ansel</option>
             <option>Blanca</option>
-            <option value="Carlos (Martes)">Carlos (Martes)</option>
+            <option>Carlos (Martes)</option>
             <option>Craig</option>
             <option>David Horcajada</option>
             <option>Edu</option>
@@ -556,7 +572,6 @@ function inicializarListaSocios() {
             <option>Fran</option>
             <option>Francesco</option>
             <option>Iyan</option>
-            <option value="José (Martes)">José (Martes)</option>
             <option>Juan</option>
             <option>Kike</option>
             <option>Manu (México)</option>
@@ -564,17 +579,17 @@ function inicializarListaSocios() {
             <option>Miguel</option>
             <option>Noli</option>
             <option>Rubén</option>
-            <option value="Víctor (Martes)">Víctor (Martes)</option>
+            <option>Víctor (Martes)</option>
             <option>Xavi</option>
             <option>Yeray</option>
         </optgroup>
         <optgroup label="Jueves">
             <option>Adrián</option>
             <option>Alberto Carranza</option>
-            <option>Alberto Tesoldi</option>
+            <option>Alberto Tresoldi</option>
             <option>Ángel</option>
             <option>Beñat</option>
-            <option value="Carlos (Jueves)">Carlos (Jueves)</option>
+            <option>Carlos (Jueves)</option>
             <option>Daniel Alfayate</option>
             <option>Daniel Gimeno</option>
             <option>Daniel Sánchez</option>
@@ -584,13 +599,13 @@ function inicializarListaSocios() {
             <option>Ismael</option>
             <option>Iván</option>
             <option>Jaime</option>
-            <option value="José (Jueves)">José (Jueves)</option>
+            <option>José</option>
             <option>Koke</option>
             <option>Lionel</option>
             <option>Moha</option>
             <option>Rubén Alonso</option>
             <option>Toño</option>
-            <option value="Víctor (Jueves)">Víctor (Jueves)</option>
+            <option>Víctor (Jueves)</option>
         </optgroup>
     `;
 
@@ -675,6 +690,18 @@ function obtenerIdUnicoDispositivo() {
     return deviceId;
 }
 
+function obtenerGrupoSocio(nombreSocio) {
+    const selectNombre = document.getElementById("nombre");
+    if (selectNombre && selectNombre.options.length > 0) {
+        for (let opt of selectNombre.options) {
+            if (opt.text === nombreSocio && opt.parentElement.label) {
+                return opt.parentElement.label.toLowerCase();
+            }
+        }
+    }
+    return "";
+}
+
 function gestionarSocio() {
     ocultarMensaje();
     const nombre = document.getElementById("nombre").value;
@@ -700,12 +727,20 @@ function mostrarEstadoFichaje(estado, detalleTexto) {
     const banner = document.getElementById("estadoFichajeSemana");
 
     btnFichar.style.display = "block";
-    if (estado === 'fichado' || estado === true) {
+    
+    if (estado === 'fichado') {
         btnFichar.disabled = true;
         banner.className = "estado-fichado";
         banner.innerHTML = `
             <div class="estado-titulo">Estado de asistencia</div>
             <div class="estado-detalle">Ya has fichado esta semana (${detalleTexto}).</div>
+        `;
+    } else if (estado === 'no_corresponde') {
+        btnFichar.disabled = true;
+        banner.className = "estado-no-corresponde";
+        banner.innerHTML = `
+            <div class="estado-titulo">Estado de asistencia</div>
+            <div class="estado-detalle">Hoy no te corresponde fichar (${detalleTexto}).</div>
         `;
     } else if (estado === 'dispositivo_usado') {
         btnFichar.disabled = true;
@@ -715,6 +750,7 @@ function mostrarEstadoFichaje(estado, detalleTexto) {
             <div class="estado-detalle">${detalleTexto}</div>
         `;
     } else {
+        // Pendiente (Rojo)
         btnFichar.disabled = false;
         banner.className = "estado-pendiente";
         banner.innerHTML = `
@@ -839,6 +875,17 @@ function fichar() {
         return;
     }
 
+    const grupoAsistencia = obtenerGrupoSocio(nombre);
+    const diaActual = new Date().getDay(); // 2 = Martes, 4 = Jueves
+    if (grupoAsistencia === "martes" && diaActual !== 2) {
+        mostrarMensaje("Los socios del grupo de Martes solo pueden fichar los martes.", "advertencia");
+        return;
+    }
+    if (grupoAsistencia === "jueves" && diaActual !== 4) {
+        mostrarMensaje("Los socios del grupo de Jueves solo pueden fichar los jueves.", "advertencia");
+        return;
+    }
+
     if(!navigator.geolocation){
         mostrarMensaje("Geolocalización no soportada por el navegador.", "error");
         return;
@@ -857,17 +904,6 @@ function fichar() {
         function(posicion){
             const lat = posicion.coords.latitude;
             const lon = posicion.coords.longitude;
-            
-            let grupoAsistencia = "Desconocido";
-            const selectNombre = document.getElementById("nombre");
-            if (selectNombre && selectNombre.options.length > 0) {
-                for (let opt of selectNombre.options) {
-                    if (opt.text === nombre && opt.parentElement.label) {
-                        grupoAsistencia = opt.parentElement.label;
-                        break;
-                    }
-                }
-            }
             
             const distancia = distanciaMetros(lat, lon, LATITUD_PERMITIDA, LONGITUD_PERMITIDA);
 
@@ -1084,6 +1120,7 @@ window.validarOConfigurarPin = async function() {
 
 async function comprobarFichajeSemanalEnBD(nombreSocio) {
   try {
+    // 1. PRIORIDAD MÁXIMA: COMPROBAR PRIMERO SI YA HA FICHADO ESTA SEMANA (ESTADO VERDE)
     const qSocio = query(
       collection(db, "fichajes"),
       where("nombre", "==", nombreSocio)
@@ -1106,9 +1143,30 @@ async function comprobarFichajeSemanalEnBD(nombreSocio) {
     if (fichadoEstaSemana) {
       ocultarSpinner();
       mostrarEstadoFichaje('fichado', fechaHoraFichaje);
+      return; // Salimos aquí para asegurar que el verde tiene prioridad absoluta
+    }
+
+    // 2. SEGUNDA PRIORIDAD: COMPROBAR SI HOY LE CORRESPONDE FICHAR (ESTADO AZUL SI NO ES SU DÍA)
+    const grupoSocio = obtenerGrupoSocio(nombreSocio);
+    const diaActual = new Date().getDay(); // 2 = Martes, 4 = Jueves
+    let esSuDia = true;
+    let diaNombreEsperado = "";
+
+    if (grupoSocio === "martes") {
+      diaNombreEsperado = "los martes";
+      if (diaActual !== 2) esSuDia = false;
+    } else if (grupoSocio === "jueves") {
+      diaNombreEsperado = "los jueves";
+      if (diaActual !== 4) esSuDia = false;
+    }
+
+    if (!esSuDia) {
+      ocultarSpinner();
+      mostrarEstadoFichaje('no_corresponde', `tu grupo juega ${diaNombreEsperado}`);
       return;
     }
 
+    // 3. TERCERA PRIORIDAD: COMPROBAR DISPOSITIVO Y ESTADO PENDIENTE / AMARILLO
     const fechaHoyStr = new Date().toLocaleDateString('es-ES');
     const deviceIdActual = obtenerIdUnicoDispositivo();
     const qDispositivo = query(

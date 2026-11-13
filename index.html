@@ -199,7 +199,7 @@ header, main, footer{
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
-/* Estilos dinámicos para diferenciar cuando ha fichado o no */
+/* Estilos dinámicos para diferenciar cuando ha fichado, pendiente o bloqueado por dispositivo */
 #estadoFichajeSemana.estado-fichado {
     border-left: 5px solid #0078d4;
 }
@@ -212,6 +212,16 @@ header, main, footer{
 
 #estadoFichajeSemana.estado-pendiente .estado-detalle {
     color: #dc2626;
+}
+
+#estadoFichajeSemana.estado-bloqueado {
+    border-left: 5px solid #d97706;
+    background: #fffbeb;
+    border-color: #fde68a;
+}
+
+#estadoFichajeSemana.estado-bloqueado .estado-detalle {
+    color: #b45309;
 }
 
 .estado-titulo {
@@ -227,6 +237,7 @@ header, main, footer{
     font-size: 14px;
     color: #0f172a;
     font-weight: 600;
+    line-height: 1.4;
 }
 
 /* Footer informativo llamativo */
@@ -486,7 +497,7 @@ button:disabled {
             <!-- Botón principal de fichar -->
             <button id="btnFichar" onclick="fichar()" style="display: none;">Registrar asistencia</button>
 
-            <!-- Bloque de estado de fichaje semanal dinámico (fichado o pendiente) -->
+            <!-- Bloque de estado de fichaje semanal dinámico (fichado, pendiente o bloqueado por dispositivo) -->
             <div id="estadoFichajeSemana"></div>
         </div>
     </main>
@@ -709,17 +720,24 @@ window.cambiarSocio = function(event) {
     location.reload();
 }
 
-function mostrarEstadoFichaje(fichado, detalleTexto) {
+function mostrarEstadoFichaje(estado, detalleTexto) {
     const btnFichar = document.getElementById("btnFichar");
     const banner = document.getElementById("estadoFichajeSemana");
 
     btnFichar.style.display = "block";
-    if (fichado) {
+    if (estado === 'fichado' || estado === true) {
         btnFichar.disabled = true;
         banner.className = "estado-fichado";
         banner.innerHTML = `
             <div class="estado-titulo">Estado de asistencia</div>
             <div class="estado-detalle">Ya has fichado esta semana (${detalleTexto}).</div>
+        `;
+    } else if (estado === 'dispositivo_usado') {
+        btnFichar.disabled = true;
+        banner.className = "estado-bloqueado";
+        banner.innerHTML = `
+            <div class="estado-titulo">Dispositivo ya utilizado hoy</div>
+            <div class="estado-detalle">${detalleTexto}</div>
         `;
     } else {
         btnFichar.disabled = false;
@@ -885,19 +903,21 @@ function fichar() {
                 const fechaStr = ahora.toLocaleDateString('es-ES');
                 const horaStr = ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 const formatoCompleto = `${fechaStr} a las ${horaStr}`;
+                const deviceIdActual = obtenerIdUnicoDispositivo();
 
                 const registro = {
                     nombre,
                     hora: horaStr,
                     fecha: fechaStr,
-                    diaSemana: grupoAsistencia
+                    diaSemana: grupoAsistencia,
+                    deviceId: deviceIdActual
                 };
                 
                 guardarFirebase(registro).then(guardado => {
                     procesandoFichaje = false;
                     if(guardado){
                         mostrarMensaje(`Asistencia registrada (${formatoCompleto}).`, "exito");
-                        mostrarEstadoFichaje(true, formatoCompleto);
+                        mostrarEstadoFichaje('fichado', formatoCompleto);
                     }
                 });
             }else{
@@ -1069,7 +1089,6 @@ window.validarOConfigurarPin = async function() {
         bloqueSaludo.style.display = 'block';
 
         await comprobarFichajeSemanalEnBD(nombreSocio);
-        mostrarMensaje("Pin correcto. Dispositivo vinculado correctamente.", "exito");
       } else {
         mostrarMensaje("PIN incorrecto. Inténtalo de nuevo.", "error");
       }
@@ -1085,7 +1104,6 @@ window.validarOConfigurarPin = async function() {
       bloqueSaludo.style.display = 'block';
 
       await comprobarFichajeSemanalEnBD(nombreSocio);
-      mostrarMensaje("PIN configurado y dispositivo vinculado con éxito.", "exito");
     }
   } catch (error) {
     console.error("Error procesando PIN:", error);
@@ -1095,17 +1113,18 @@ window.validarOConfigurarPin = async function() {
 
 async function comprobarFichajeSemanalEnBD(nombreSocio) {
   try {
-    const q = query(
+    // 1. Verificar si el socio actual ya fichó esta semana
+    const qSocio = query(
       collection(db, "fichajes"),
       where("nombre", "==", nombreSocio)
     );
 
-    const resultados = await getDocs(q);
+    const resultadosSocio = await getDocs(qSocio);
     const { lunes, domingo } = obtenerRangoSemanaActual();
     let fichadoEstaSemana = false;
     let fechaHoraFichaje = "";
 
-    resultados.forEach(docSnap => {
+    resultadosSocio.forEach(docSnap => {
       const data = docSnap.data();
       const fechaDoc = parsearFechaES(data.fecha);
       if (fechaDoc && fechaDoc >= lunes && fechaDoc <= domingo) {
@@ -1114,11 +1133,38 @@ async function comprobarFichajeSemanalEnBD(nombreSocio) {
       }
     });
 
-    ocultarSpinner();
     if (fichadoEstaSemana) {
-      mostrarEstadoFichaje(true, fechaHoraFichaje);
+      ocultarSpinner();
+      mostrarEstadoFichaje('fichado', fechaHoraFichaje);
+      return;
+    }
+
+    // 2. Verificar si este dispositivo ya ha sido utilizado hoy por otra persona
+    const fechaHoyStr = new Date().toLocaleDateString('es-ES');
+    const deviceIdActual = obtenerIdUnicoDispositivo();
+    const qDispositivo = query(
+      collection(db, "fichajes"),
+      where("fecha", "==", fechaHoyStr),
+      where("deviceId", "==", deviceIdActual)
+    );
+
+    const resultadosDispositivo = await getDocs(qDispositivo);
+    let otroUsuarioHoy = null;
+
+    resultadosDispositivo.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.nombre !== nombreSocio) {
+        otroUsuarioHoy = data.nombre;
+      }
+    });
+
+    ocultarSpinner();
+    if (otroUsuarioHoy) {
+      const msgBloqueo = `Hoy ya ha fichado ${otroUsuarioHoy} desde este dispositivo. Solo se permite fichar una persona por dispositivo al día.`;
+      mostrarEstadoFichaje('dispositivo_usado', msgBloqueo);
+      mostrarMensaje(msgBloqueo, "advertencia");
     } else {
-      mostrarEstadoFichaje(false, "");
+      mostrarEstadoFichaje('pendiente', "");
     }
   } catch (error) {
     ocultarSpinner();
@@ -1129,15 +1175,39 @@ async function comprobarFichajeSemanalEnBD(nombreSocio) {
 
 window.guardarFirebase = async function(registro) {
   try {
-    const q = query(
+    // 1. Comprobar que este dispositivo no haya fichado ya hoy por otra persona
+    const qDispositivo = query(
+      collection(db, "fichajes"),
+      where("fecha", "==", registro.fecha),
+      where("deviceId", "==", registro.deviceId)
+    );
+    const resultadosDispositivo = await getDocs(qDispositivo);
+    let otroUsuarioHoy = null;
+
+    resultadosDispositivo.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.nombre !== registro.nombre) {
+        otroUsuarioHoy = data.nombre;
+      }
+    });
+
+    if (otroUsuarioHoy) {
+      const msgBloqueo = `Hoy ya ha fichado ${otroUsuarioHoy} desde este dispositivo. Solo se permite fichar una persona por dispositivo al día.`;
+      mostrarMensaje(msgBloqueo, "advertencia");
+      mostrarEstadoFichaje('dispositivo_usado', msgBloqueo);
+      return false;
+    }
+
+    // 2. Comprobar que el socio no haya fichado ya esta semana
+    const qSocio = query(
       collection(db, "fichajes"),
       where("nombre", "==", registro.nombre)
     );
-    const resultados = await getDocs(q);
+    const resultadosSocio = await getDocs(qSocio);
     const { lunes, domingo } = obtenerRangoSemanaActual();
     let yaFicho = false;
 
-    resultados.forEach(docSnap => {
+    resultadosSocio.forEach(docSnap => {
       const data = docSnap.data();
       const fechaDoc = parsearFechaES(data.fecha);
       if (fechaDoc && fechaDoc >= lunes && fechaDoc <= domingo) {
@@ -1148,7 +1218,7 @@ window.guardarFirebase = async function(registro) {
     if (yaFicho) {
       const formatoCompleto = `${registro.fecha} a las ${registro.hora}`;
       mostrarMensaje("Ya existe un fichaje tuyo registrado esta semana.", "info");
-      mostrarEstadoFichaje(true, formatoCompleto);
+      mostrarEstadoFichaje('fichado', formatoCompleto);
       return false;
     }
 

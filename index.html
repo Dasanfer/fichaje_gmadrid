@@ -1089,6 +1089,7 @@ window.validarOConfigurarPin = async function() {
         bloqueSaludo.style.display = 'block';
 
         await comprobarFichajeSemanalEnBD(nombreSocio);
+        mostrarMensaje("PIN introducido correctamente.", "exito");
       } else {
         mostrarMensaje("PIN incorrecto. Inténtalo de nuevo.", "error");
       }
@@ -1104,6 +1105,7 @@ window.validarOConfigurarPin = async function() {
       bloqueSaludo.style.display = 'block';
 
       await comprobarFichajeSemanalEnBD(nombreSocio);
+      mostrarMensaje("PIN creado correctamente y dispositivo vinculado.", "exito");
     }
   } catch (error) {
     console.error("Error procesando PIN:", error);
@@ -1149,20 +1151,21 @@ async function comprobarFichajeSemanalEnBD(nombreSocio) {
     );
 
     const resultadosDispositivo = await getDocs(qDispositivo);
-    let otroUsuarioHoy = null;
+    let dispositivoUsadoHoy = false;
 
     resultadosDispositivo.forEach(docSnap => {
       const data = docSnap.data();
       if (data.nombre !== nombreSocio) {
-        otroUsuarioHoy = data.nombre;
+        dispositivoUsadoHoy = true;
       }
     });
 
     ocultarSpinner();
-    if (otroUsuarioHoy) {
-      const msgBloqueo = `Hoy ya ha fichado ${otroUsuarioHoy} desde este dispositivo. Solo se permite fichar una persona por dispositivo al día.`;
-      mostrarEstadoFichaje('dispositivo_usado', msgBloqueo);
-      mostrarMensaje(msgBloqueo, "advertencia");
+    if (dispositivoUsadoHoy) {
+      const msgAlerta = "Este dispositivo ya ha sido utilizado hoy. Límite de un fichaje por dispositivo diario.";
+      const msgBanner = "Dispositivo ya utilizado hoy. Solo se permite un fichaje por día y terminal.";
+      mostrarEstadoFichaje('dispositivo_usado', msgBanner);
+      mostrarMensaje(msgAlerta, "advertencia");
     } else {
       mostrarEstadoFichaje('pendiente', "");
     }
@@ -1182,19 +1185,20 @@ window.guardarFirebase = async function(registro) {
       where("deviceId", "==", registro.deviceId)
     );
     const resultadosDispositivo = await getDocs(qDispositivo);
-    let otroUsuarioHoy = null;
+    let dispositivoUsadoHoy = false;
 
     resultadosDispositivo.forEach(docSnap => {
       const data = docSnap.data();
       if (data.nombre !== registro.nombre) {
-        otroUsuarioHoy = data.nombre;
+        dispositivoUsadoHoy = true;
       }
     });
 
-    if (otroUsuarioHoy) {
-      const msgBloqueo = `Hoy ya ha fichado ${otroUsuarioHoy} desde este dispositivo. Solo se permite fichar una persona por dispositivo al día.`;
-      mostrarMensaje(msgBloqueo, "advertencia");
-      mostrarEstadoFichaje('dispositivo_usado', msgBloqueo);
+    if (dispositivoUsadoHoy) {
+      const msgAlerta = "Este dispositivo ya ha sido utilizado hoy. Límite de un fichaje por dispositivo diario.";
+      const msgBanner = "Dispositivo ya utilizado hoy. Solo se permite un fichaje por día y terminal.";
+      mostrarMensaje(msgAlerta, "advertencia");
+      mostrarEstadoFichaje('dispositivo_usado', msgBanner);
       return false;
     }
 

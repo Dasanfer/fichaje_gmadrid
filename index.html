@@ -528,7 +528,7 @@ function actualizarRelojCabecera() {
         month: "long",
         year: "numeric"
     });
-    const textoHora = nowString = ahora.toLocaleTimeString("es-ES", {
+    const textoHora = ahora.toLocaleTimeString("es-ES", {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit"
@@ -944,6 +944,15 @@ function sanitizarId(nombre) {
   return nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_");
 }
 
+// Función auxiliar para generar un hash seguro (SHA-256) del PIN
+async function generarHashPin(pin) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pin);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 window.verificarEstadoInicial = async function() {
   const socioGuardado = localStorage.getItem('gmadrid_socio_actual');
   if (!socioGuardado) return;
@@ -1044,11 +1053,13 @@ window.validarOConfigurarPin = async function() {
     const refCredencial = doc(db, "credenciales_socios", idDoc);
     const snapCredencial = await getDoc(refCredencial);
     const deviceIdActual = obtenerIdUnicoDispositivo();
+    const pinHashIngresado = await generarHashPin(pinInput);
 
     if (snapCredencial.exists()) {
       const data = snapCredencial.data();
-      if (data.pin === pinInput) {
-        await setDoc(refCredencial, { pin: pinInput, deviceId: deviceIdActual }, { merge: true });
+      // Comparamos el hash guardado en Firebase con el hash del PIN introducido
+      if (data.pin === pinHashIngresado) {
+        await setDoc(refCredencial, { pin: pinHashIngresado, deviceId: deviceIdActual }, { merge: true });
         document.getElementById("bloquePin").style.display = "none";
         document.getElementById("pinSocio").value = "";
         
@@ -1063,7 +1074,8 @@ window.validarOConfigurarPin = async function() {
         mostrarMensaje("PIN incorrecto. Inténtalo de nuevo.", "error");
       }
     } else {
-      await setDoc(refCredencial, { pin: pinInput, deviceId: deviceIdActual });
+      // Guardamos el hash seguro del PIN en lugar del número plano
+      await setDoc(refCredencial, { pin: pinHashIngresado, deviceId: deviceIdActual });
       document.getElementById("bloquePin").style.display = "none";
       document.getElementById("pinSocio").value = "";
       

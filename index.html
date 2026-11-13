@@ -79,7 +79,6 @@ header, main, footer{
     font-weight: 500;
 }
 
-/* Saludo sobrio, grande, sin fondo y con enlace de cambiar socio */
 #bloqueSaludo {
     display: none;
     text-align: center;
@@ -107,7 +106,6 @@ header, main, footer{
     text-decoration: underline;
 }
 
-/* Buscador inteligente de socios con autocompletado Mobile-First */
 .buscador-container {
     position: relative;
     margin-top: 8px;
@@ -187,7 +185,6 @@ header, main, footer{
     border-radius: 12px;
 }
 
-/* Bloque de estado de fichaje semanal */
 #estadoFichajeSemana {
     display: none;
     background: #f8fafc;
@@ -199,7 +196,6 @@ header, main, footer{
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
-/* Estilos dinámicos para diferenciar cuando ha fichado, pendiente o bloqueado por dispositivo */
 #estadoFichajeSemana.estado-fichado {
     border-left: 5px solid #0078d4;
 }
@@ -240,7 +236,6 @@ header, main, footer{
     line-height: 1.4;
 }
 
-/* Footer informativo llamativo */
 .footer-informativo {
     background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fa 100%);
     border: 1px solid #b3d7ff;
@@ -276,7 +271,6 @@ header, main, footer{
     color: #444;
 }
 
-/* Contenedor del input PIN con botón interno de texto */
 .input-pin-wrapper {
     position: relative;
     display: flex;
@@ -359,7 +353,6 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* Alerta flotante fija arriba */
 #mensaje {
     position: fixed;
     top: 20px;
@@ -401,7 +394,6 @@ button:disabled {
     transition: all 0.2s ease;
 }
 
-/* Spinner overlay semiopaco */
 #spinnerOverlay {
     position: fixed;
     top: 0;
@@ -436,7 +428,6 @@ button:disabled {
 </head>
 <body>
 
-<!-- Alerta flotante fija arriba -->
 <div id="mensaje">
     <div class="mensaje-contenido">
         <span id="textoMensaje"></span>
@@ -444,7 +435,6 @@ button:disabled {
     </div>
 </div>
 
-<!-- Spinner Overlay -->
 <div id="spinnerOverlay">
     <div class="spinner"></div>
     <span id="textoSpinner">Procesando...</span>
@@ -461,7 +451,6 @@ button:disabled {
 
     <main>
         <div class="container">
-            <!-- Saludo sobrio, grande, sin fondo y con enlace de cambiar socio -->
             <div id="bloqueSaludo">
                 <div id="textoSaludo" class="texto-saludo-principal"></div>
                 <div>
@@ -469,7 +458,6 @@ button:disabled {
                 </div>
             </div>
 
-            <!-- Buscador inteligente con autocompletado en tiempo real -->
             <div id="bloqueSelector">
                 <label for="buscadorSocio"><b>Busca o selecciona tu nombre:</b></label>
                 <div class="buscador-container">
@@ -479,10 +467,8 @@ button:disabled {
                 </div>
             </div>
 
-            <!-- Selector oculto para almacenar la selección internamente -->
             <select id="nombre" style="display:none;" onchange="gestionarSocio()"></select>
 
-            <!-- Contenedor dinámico para PIN -->
             <div id="bloquePin" style="display: none; margin-top: 15px;">
                 <label for="pinSocio"><b id="etiquetaPinLabel">Introduce tu PIN de 4 dígitos:</b></label>
                 <div class="input-pin-wrapper">
@@ -494,10 +480,8 @@ button:disabled {
                 <button type="button" onclick="validarOConfigurarPin()">Confirmar PIN</button>
             </div>
 
-            <!-- Botón principal de fichar -->
             <button id="btnFichar" onclick="fichar()" style="display: none;">Registrar asistencia</button>
 
-            <!-- Bloque de estado de fichaje semanal dinámico (fichado, pendiente o bloqueado por dispositivo) -->
             <div id="estadoFichajeSemana"></div>
         </div>
     </main>
@@ -651,17 +635,10 @@ function renderizarSugerencias(socios) {
 }
 
 function seleccionarSocioBuscador(nombreSocio) {
-    vibrarHaptica();
     document.getElementById('buscadorSocio').value = nombreSocio;
     document.getElementById('listaSugerencias').style.display = 'none';
     document.getElementById('nombre').value = nombreSocio;
     gestionarSocio();
-}
-
-function vibrarHaptica() {
-    if (navigator.vibrate) {
-        navigator.vibrate(35);
-    }
 }
 
 function obtenerRangoSemanaActual() {
@@ -712,10 +689,8 @@ function gestionarSocio() {
     }
 }
 
-// Función para cambiar de usuario de forma limpia
 window.cambiarSocio = function(event) {
     event.preventDefault();
-    vibrarHaptica();
     localStorage.removeItem('gmadrid_socio_actual');
     location.reload();
 }
@@ -774,7 +749,6 @@ function ocultarSpinner() {
 }
 
 function toggleVisibilidadPin() {
-    vibrarHaptica();
     const inputPin = document.getElementById("pinSocio");
     const btnToggle = document.querySelector(".btn-toggle-pin");
     if (inputPin.type === "password") {
@@ -855,7 +829,6 @@ function distanciaMetros(lat1, lon1, lat2, lon2) {
 
 function fichar() {
     if (procesandoFichaje) return; 
-    vibrarHaptica();
 
     const socioGuardado = localStorage.getItem('gmadrid_socio_actual');
     const nombreSocioSelect = document.getElementById("nombre").value;
@@ -964,7 +937,6 @@ function sanitizarId(nombre) {
   return nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_");
 }
 
-// Función auxiliar para generar un hash seguro (SHA-256) del PIN
 async function generarHashPin(pin) {
   const encoder = new TextEncoder();
   const data = encoder.encode(pin);
@@ -1051,7 +1023,6 @@ window.verificarDispositivoYFichaje = async function(nombreSocio) {
 };
 
 window.validarOConfigurarPin = async function() {
-  vibrarHaptica();
   const socioGuardado = localStorage.getItem('gmadrid_socio_actual');
   const nombreSocioSelect = document.getElementById("nombre").value;
   const nombreSocio = socioGuardado || nombreSocioSelect;
@@ -1077,7 +1048,6 @@ window.validarOConfigurarPin = async function() {
 
     if (snapCredencial.exists()) {
       const data = snapCredencial.data();
-      // Comparamos el hash guardado en Firebase con el hash del PIN introducido
       if (data.pin === pinHashIngresado) {
         await setDoc(refCredencial, { pin: pinHashIngresado, deviceId: deviceIdActual }, { merge: true });
         document.getElementById("bloquePin").style.display = "none";
@@ -1094,7 +1064,6 @@ window.validarOConfigurarPin = async function() {
         mostrarMensaje("PIN incorrecto. Inténtalo de nuevo.", "error");
       }
     } else {
-      // Guardamos el hash seguro del PIN en lugar del número plano
       await setDoc(refCredencial, { pin: pinHashIngresado, deviceId: deviceIdActual });
       document.getElementById("bloquePin").style.display = "none";
       document.getElementById("pinSocio").value = "";
@@ -1115,7 +1084,6 @@ window.validarOConfigurarPin = async function() {
 
 async function comprobarFichajeSemanalEnBD(nombreSocio) {
   try {
-    // 1. Verificar si el socio actual ya fichó esta semana
     const qSocio = query(
       collection(db, "fichajes"),
       where("nombre", "==", nombreSocio)
@@ -1141,7 +1109,6 @@ async function comprobarFichajeSemanalEnBD(nombreSocio) {
       return;
     }
 
-    // 2. Verificar si este dispositivo ya ha sido utilizado hoy por otra persona
     const fechaHoyStr = new Date().toLocaleDateString('es-ES');
     const deviceIdActual = obtenerIdUnicoDispositivo();
     const qDispositivo = query(
@@ -1178,7 +1145,6 @@ async function comprobarFichajeSemanalEnBD(nombreSocio) {
 
 window.guardarFirebase = async function(registro) {
   try {
-    // 1. Comprobar que este dispositivo no haya fichado ya hoy por otra persona
     const qDispositivo = query(
       collection(db, "fichajes"),
       where("fecha", "==", registro.fecha),
@@ -1202,7 +1168,6 @@ window.guardarFirebase = async function(registro) {
       return false;
     }
 
-    // 2. Comprobar que el socio no haya fichado ya esta semana
     const qSocio = query(
       collection(db, "fichajes"),
       where("nombre", "==", registro.nombre)

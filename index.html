@@ -1069,7 +1069,7 @@ window.validarOConfigurarPin = async function() {
         bloqueSaludo.style.display = 'block';
 
         await comprobarFichajeSemanalEnBD(nombreSocio);
-        mostrarMensaje("Dispositivo vinculado correctamente.", "exito");
+        mostrarMensaje("Pin correcto. Dispositivo vinculado correctamente.", "exito");
       } else {
         mostrarMensaje("PIN incorrecto. Inténtalo de nuevo.", "error");
       }

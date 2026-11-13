@@ -1,0 +1,1160 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fichaje de Asistencias - GMadrid Juegos de Mesa</title>
+<link rel="icon"
+type="image/svg+xml"
+href='data:image/svg+xml,
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<rect y="0" width="64" height="10.6" fill="%23e40303"/>
+<rect y="10.6" width="64" height="10.6" fill="%23ff8c00"/>
+<rect y="21.2" width="64" height="10.6" fill="%23ffed00"/>
+<rect y="31.8" width="64" height="10.6" fill="%23008026"/>
+<rect y="42.4" width="64" height="10.6" fill="%230044d4"/>
+<rect y="53" width="64" height="11" fill="%23750087"/>
+<rect x="12" y="12" width="40" height="40" rx="8" fill="white" stroke="black" stroke-width="3"/>
+<circle cx="22" cy="22" r="3.5" fill="black"/>
+<circle cx="42" cy="22" r="3.5" fill="black"/>
+<circle cx="32" cy="32" r="3.5" fill="black"/>
+<circle cx="22" cy="42" r="3.5" fill="black"/>
+<circle cx="42" cy="42" r="3.5" fill="black"/>
+</svg>'>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 15px;
+    color: #333;
+}
+
+.wrapper-principal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+header, main, footer{
+    width: 100%;
+}
+
+.header-principal {
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 0 5px;
+}
+
+.header-principal h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.5px;
+}
+
+.header-principal h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0078d4;
+    margin: 0 0 10px 0;
+    display: inline-block;
+    background: rgba(0, 120, 212, 0.08);
+    padding: 6px 16px;
+    border-radius: 20px;
+}
+
+#fechaHoy{
+    text-align: center;
+    color: #64748b;
+    font-size: 0.85rem;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Saludo sobrio, grande, sin fondo y con enlace de cambiar socio */
+#bloqueSaludo {
+    display: none;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.texto-saludo-principal {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: -0.3px;
+    margin-bottom: 6px;
+}
+
+.enlace-cambiar-socio {
+    font-size: 13px;
+    color: #0078d4;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+.enlace-cambiar-socio:hover {
+    color: #005a9e;
+    text-decoration: underline;
+}
+
+/* Buscador inteligente de socios con autocompletado Mobile-First */
+.buscador-container {
+    position: relative;
+    margin-top: 8px;
+    margin-bottom: 20px;
+}
+
+#buscadorSocio {
+    width: 100%;
+    padding: 13px 13px 13px 40px;
+    box-sizing: border-box;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: #fafbfc;
+    transition: all 0.2s ease;
+}
+
+.icono-busqueda {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #64748b;
+    pointer-events: none;
+}
+
+#buscadorSocio:focus {
+    outline: none;
+    border-color: #0078d4;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+}
+
+#listaSugerencias {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    z-index: 100;
+    box-sizing: border-box;
+}
+
+.sugerencia-item {
+    padding: 12px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #1e293b;
+    transition: background 0.15s ease;
+}
+
+.sugerencia-item:last-child {
+    border-bottom: none;
+}
+
+.sugerencia-item:hover {
+    background: #f0f7ff;
+    color: #0078d4;
+}
+
+.sugerencia-grupo {
+    font-size: 11px;
+    font-weight: 600;
+    background: #e2e8f0;
+    color: #475569;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+/* Bloque de estado de fichaje semanal */
+#estadoFichajeSemana {
+    display: none;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 16px 18px;
+    border-radius: 8px;
+    text-align: left;
+    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* Estilos dinámicos para diferenciar cuando ha fichado o no */
+#estadoFichajeSemana.estado-fichado {
+    border-left: 5px solid #0078d4;
+}
+
+#estadoFichajeSemana.estado-pendiente {
+    border-left: 5px solid #dc2626;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+#estadoFichajeSemana.estado-pendiente .estado-detalle {
+    color: #dc2626;
+}
+
+.estado-titulo {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.estado-detalle {
+    font-size: 14px;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+/* Footer informativo llamativo */
+.footer-informativo {
+    background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fa 100%);
+    border: 1px solid #b3d7ff;
+    padding: 14px 18px;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 15px;
+    box-shadow: 0 2px 8px rgba(0, 120, 212, 0.06);
+}
+
+.footer-informativo p {
+    margin: 0;
+    font-size: 13px;
+    color: #1e293b;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.container{
+    background: white;
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: 1px solid #eaeaea;
+}
+
+.container label {
+    display: flex;
+    font-weight: 600;
+    font-size: 13.5px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    color: #444;
+}
+
+/* Contenedor del input PIN con botón interno de texto */
+.input-pin-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+
+.input-pin-wrapper input {
+    width: 100%;
+    padding: 13px 85px 13px 13px;
+    box-sizing: border-box;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: #fafbfc;
+    transition: all 0.2s ease;
+}
+
+.input-pin-wrapper input:focus {
+    outline: none;
+    border-color: #0078d4;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+}
+
+.btn-toggle-pin {
+    position: absolute;
+    right: 8px;
+    background: #e2e8f0;
+    border: none;
+    cursor: pointer;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #475569;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    width: auto;
+    margin: 0;
+}
+
+.btn-toggle-pin:hover {
+    background: #0078d4;
+    color: #ffffff;
+}
+
+.ayuda-pin {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+button{
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #0078d4;
+    color: white;
+    font-weight: bold;
+    font-size: 15px;
+    transition: background 0.2s, transform 0.1s;
+}
+
+button:hover:not(:disabled){
+    background: #005a9e;
+}
+
+button:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Alerta flotante fija arriba */
+#mensaje {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 90%;
+    max-width: 500px;
+    font-weight: 600;
+    text-align: left;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    display: none;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border: 1px solid rgba(0,0,0,0.08);
+    box-sizing: border-box;
+}
+
+.mensaje-contenido {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.btn-cerrar-mensaje {
+    background: transparent;
+    border: 1px solid transparent;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 2px 6px;
+    margin: 0;
+    width: auto;
+    line-height: 1;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+/* Spinner overlay semiopaco */
+#spinnerOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9998;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 12px;
+    color: white;
+    font-weight: bold;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+</head>
+<body>
+
+<!-- Alerta flotante fija arriba -->
+<div id="mensaje">
+    <div class="mensaje-contenido">
+        <span id="textoMensaje"></span>
+        <button class="btn-cerrar-mensaje" onclick="ocultarMensaje()">&times;</button>
+    </div>
+</div>
+
+<!-- Spinner Overlay -->
+<div id="spinnerOverlay">
+    <div class="spinner"></div>
+    <span id="textoSpinner">Procesando...</span>
+</div>
+
+<div class="wrapper-principal">
+    <header>
+        <div class="header-principal">
+            <h1>FICHAJE DE ASISTENCIA 📝</h1>
+            <h2>GMadrid Juegos de Mesa 🏳️‍🌈🎲</h2>
+            <p id="fechaHoy"></p>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Saludo sobrio, grande, sin fondo y con enlace de cambiar socio -->
+            <div id="bloqueSaludo">
+                <div id="textoSaludo" class="texto-saludo-principal"></div>
+                <div>
+                    <a href="#" onclick="cambiarSocio(event)" class="enlace-cambiar-socio">¿No eres tú? Cambiar de socio</a>
+                </div>
+            </div>
+
+            <!-- Buscador inteligente con autocompletado en tiempo real -->
+            <div id="bloqueSelector">
+                <label for="buscadorSocio"><b>Busca o selecciona tu nombre:</b></label>
+                <div class="buscador-container">
+                    <span class="icono-busqueda">🔍</span>
+                    <input type="text" id="buscadorSocio" placeholder="Empieza a escribir tu nombre..." autocomplete="off" oninput="filtrarSocios()" onfocus="mostrarSugerencias()">
+                    <div id="listaSugerencias" style="display:none;"></div>
+                </div>
+            </div>
+
+            <!-- Selector oculto para almacenar la selección internamente -->
+            <select id="nombre" style="display:none;" onchange="gestionarSocio()"></select>
+
+            <!-- Contenedor dinámico para PIN -->
+            <div id="bloquePin" style="display: none; margin-top: 15px;">
+                <label for="pinSocio"><b id="etiquetaPinLabel">Introduce tu PIN de 4 dígitos:</b></label>
+                <div class="input-pin-wrapper">
+                    <input type="password" id="pinSocio" maxlength="4" placeholder="••••" inputmode="numeric">
+                    <button type="button" class="btn-toggle-pin" onclick="toggleVisibilidadPin()">Mostrar</button>
+                </div>
+                <div id="ayudaPinCreacion" class="ayuda-pin" style="display: none;">Crear este código solo se te pedirá esta única vez. Anótalo y recuérdalo por si necesitas usarlo en otros dispositivos o aplicaciones.</div>
+                
+                <button type="button" onclick="validarOConfigurarPin()">Confirmar PIN</button>
+            </div>
+
+            <!-- Botón principal de fichar -->
+            <button id="btnFichar" onclick="fichar()" style="display: none;">Registrar asistencia</button>
+
+            <!-- Bloque de estado de fichaje semanal dinámico (fichado o pendiente) -->
+            <div id="estadoFichajeSemana"></div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-informativo">
+            <p>💬 ¿Tienes algún problema, duda o sugerencia? Contacta con <b>Daniel Sánchez</b></p>
+        </div>
+    </footer>
+</div>
+
+<script>
+const LATITUD_PERMITIDA = 40.406104468661624;
+const LONGITUD_PERMITIDA = -3.7073146250218514;
+const RADIO_METROS = 50000;
+let procesandoFichaje = false; 
+let temporizadorTimeout = null;
+let listaCompletaSocios = [];
+
+window.addEventListener('DOMContentLoaded', () => {
+    actualizarRelojCabecera();
+    setInterval(actualizarRelojCabecera, 1000);
+    inicializarListaSocios();
+    verificarEstadoInicial();
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.buscador-container')) {
+            const lista = document.getElementById('listaSugerencias');
+            if(lista) lista.style.display = 'none';
+        }
+    });
+});
+
+function actualizarRelojCabecera() {
+    const ahora = new Date();
+    const textoFecha = ahora.toLocaleDateString("es-ES", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
+    const textoHora = nowString = ahora.toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    });
+
+    const fechaCapitalizada = textoFecha.charAt(0).toUpperCase() + textoFecha.slice(1);
+    document.getElementById("fechaHoy").textContent = `${fechaCapitalizada} — ${textoHora}`;
+}
+
+function inicializarListaSocios() {
+    const select = document.getElementById('nombre');
+    select.innerHTML = `
+        <option value="">Selecciona tu nombre</option>
+        <optgroup label="Martes">
+            <option>Álvaro Ascariz</option>
+            <option>Álvaro Barreiro</option>
+            <option>Álvaro de la Parte</option>
+            <option>Álvaro de Mera</option>
+            <option>Álvaro F. Chércoles</option>
+            <option>Álvaro Fernández</option>
+            <option>Álvaro Moreno</option>
+            <option>André</option>
+            <option>Ansel</option>
+            <option>Blanca</option>
+            <option value="Carlos (Martes)">Carlos (Martes)</option>
+            <option>Craig</option>
+            <option>David Horcajada</option>
+            <option>Edu</option>
+            <option>Fer</option>
+            <option>Fran</option>
+            <option>Francesco</option>
+            <option>Iyan</option>
+            <option value="José (Martes)">José (Martes)</option>
+            <option>Juan</option>
+            <option>Kike</option>
+            <option>Manu (México)</option>
+            <option>Manu (Telecinco)</option>
+            <option>Miguel</option>
+            <option>Noli</option>
+            <option>Rubén</option>
+            <option value="Víctor (Martes)">Víctor (Martes)</option>
+            <option>Xavi</option>
+            <option>Yeray</option>
+        </optgroup>
+        <optgroup label="Jueves">
+            <option>Adrián</option>
+            <option>Alberto Carranza</option>
+            <option>Alberto Tesoldi</option>
+            <option>Ángel</option>
+            <option>Beñat</option>
+            <option value="Carlos (Jueves)">Carlos (Jueves)</option>
+            <option>Daniel Alfayate</option>
+            <option>Daniel Gimeno</option>
+            <option>Daniel Sánchez</option>
+            <option>David Rodríguez (Dave)</option>
+            <option>David Rodríguez (Ebri)</option>
+            <option>Diego</option>
+            <option>Ismael</option>
+            <option>Iván</option>
+            <option>Jaime</option>
+            <option value="José (Jueves)">José (Jueves)</option>
+            <option>Koke</option>
+            <option>Lionel</option>
+            <option>Moha</option>
+            <option>Rubén Alonso</option>
+            <option>Toño</option>
+            <option value="Víctor (Jueves)">Víctor (Jueves)</option>
+        </optgroup>
+    `;
+
+    listaCompletaSocios = [];
+    select.querySelectorAll('optgroup').forEach(group => {
+        const grupoLabel = group.label;
+        group.querySelectorAll('option').forEach(opt => {
+            if(opt.value !== "") {
+                listaCompletaSocios.push({ nombre: opt.textContent, valor: opt.value, grupo: grupoLabel });
+            }
+        });
+    });
+}
+
+function mostrarSugerencias() {
+    renderizarSugerencias(listaCompletaSocios);
+}
+
+function filtrarSocios() {
+    const texto = document.getElementById('buscadorSocio').value.toLowerCase().trim();
+    const filtrados = listaCompletaSocios.filter(s => s.nombre.toLowerCase().includes(texto));
+    renderizarSugerencias(filtrados);
+}
+
+function renderizarSugerencias(socios) {
+    const contenedor = document.getElementById('listaSugerencias');
+    contenedor.innerHTML = '';
+    
+    if (socios.length === 0) {
+        contenedor.style.display = 'none';
+        return;
+    }
+
+    socios.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'sugerencia-item';
+        div.innerHTML = `<span>${s.nombre}</span> <span class="sugerencia-grupo">${s.grupo}</span>`;
+        div.onclick = () => seleccionarSocioBuscador(s.nombre);
+        contenedor.appendChild(div);
+    });
+    contenedor.style.display = 'block';
+}
+
+function seleccionarSocioBuscador(nombreSocio) {
+    vibrarHaptica();
+    document.getElementById('buscadorSocio').value = nombreSocio;
+    document.getElementById('listaSugerencias').style.display = 'none';
+    document.getElementById('nombre').value = nombreSocio;
+    gestionarSocio();
+}
+
+function vibrarHaptica() {
+    if (navigator.vibrate) {
+        navigator.vibrate(35);
+    }
+}
+
+function obtenerRangoSemanaActual() {
+    const ahora = new Date();
+    const diaSemana = ahora.getDay();
+    const distanciaLunes = diaSemana === 0 ? -6 : 1 - diaSemana;
+    
+    const lunes = new Date(ahora);
+    lunes.setDate(ahora.getDate() + distanciaLunes);
+    lunes.setHours(0, 0, 0, 0);
+
+    const domingo = new Date(lunes);
+    domingo.setDate(lunes.getDate() + 6);
+    domingo.setHours(23, 59, 59, 999);
+
+    return { lunes, domingo };
+}
+
+function parsearFechaES(fechaStr) {
+    if (!fechaStr) return null;
+    const partes = fechaStr.split('/');
+    if (partes.length === 3) {
+        return new Date(`${partes[2]}-${partes[1]}-${partes[0]}T12:00:00`);
+    }
+    return null;
+}
+
+function obtenerIdUnicoDispositivo() {
+    let deviceId = localStorage.getItem("gmadrid_device_uuid");
+    if (!deviceId) {
+        deviceId = 'dev_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+        localStorage.setItem("gmadrid_device_uuid", deviceId);
+    }
+    return deviceId;
+}
+
+function gestionarSocio() {
+    ocultarMensaje();
+    const nombre = document.getElementById("nombre").value;
+    if (nombre) {
+        localStorage.setItem('gmadrid_socio_actual', nombre);
+        verificarDispositivoYFichaje(nombre);
+    } else {
+        localStorage.removeItem('gmadrid_socio_actual');
+        document.getElementById("bloquePin").style.display = "none";
+        document.getElementById("btnFichar").style.display = "none";
+        document.getElementById("estadoFichajeSemana").style.display = "none";
+    }
+}
+
+// Función para cambiar de usuario de forma limpia
+window.cambiarSocio = function(event) {
+    event.preventDefault();
+    vibrarHaptica();
+    localStorage.removeItem('gmadrid_socio_actual');
+    location.reload();
+}
+
+function mostrarEstadoFichaje(fichado, detalleTexto) {
+    const btnFichar = document.getElementById("btnFichar");
+    const banner = document.getElementById("estadoFichajeSemana");
+
+    btnFichar.style.display = "block";
+    if (fichado) {
+        btnFichar.disabled = true;
+        banner.className = "estado-fichado";
+        banner.innerHTML = `
+            <div class="estado-titulo">Estado de asistencia</div>
+            <div class="estado-detalle">Ya has fichado esta semana (${detalleTexto}).</div>
+        `;
+    } else {
+        btnFichar.disabled = false;
+        banner.className = "estado-pendiente";
+        banner.innerHTML = `
+            <div class="estado-titulo">Estado de asistencia</div>
+            <div class="estado-detalle">No se ha fichado la asistencia todavía.</div>
+        `;
+    }
+    banner.style.display = "block";
+}
+
+function mostrarSpinner(texto = "Procesando...") {
+    document.getElementById("textoSpinner").textContent = texto;
+    document.getElementById("spinnerOverlay").style.display = "flex";
+
+    if (temporizadorTimeout) clearTimeout(temporizadorTimeout);
+
+    temporizadorTimeout = setTimeout(() => {
+        if (document.getElementById("spinnerOverlay").style.display === "flex") {
+            ocultarSpinner();
+            procesandoFichaje = false;
+            mostrarMensaje("La operación ha tardado demasiado. Comprueba tu conexión o el GPS e inténtalo de nuevo.", "error");
+        }
+    }, 10000);
+}
+
+function ocultarSpinner() {
+    if (temporizadorTimeout) {
+        clearTimeout(temporizadorTimeout);
+        temporizadorTimeout = null;
+    }
+    document.getElementById("spinnerOverlay").style.display = "none";
+}
+
+function toggleVisibilidadPin() {
+    vibrarHaptica();
+    const inputPin = document.getElementById("pinSocio");
+    const btnToggle = document.querySelector(".btn-toggle-pin");
+    if (inputPin.type === "password") {
+        inputPin.type = "text";
+        btnToggle.textContent = "Ocultar";
+    } else {
+        inputPin.type = "password";
+        btnToggle.textContent = "Mostrar";
+    }
+}
+
+function mostrarMensaje(texto, tipo = 'exito') {
+    ocultarSpinner();
+    const mensaje = document.getElementById("mensaje");
+    const textoMensaje = document.getElementById("textoMensaje");
+    const btnCerrar = document.querySelector('.btn-cerrar-mensaje');
+
+    if (!texto || texto.trim() === "") {
+        ocultarMensaje();
+        return;
+    }
+
+    const iconos = {
+        exito: "✅",
+        error: "❌",
+        advertencia: "⚠️",
+        info: "ℹ️"
+    };
+
+    const icono = iconos[tipo] || "";
+    textoMensaje.textContent = icono ? `${icono} ${texto}` : texto;
+    mensaje.style.display = "block";
+
+    let colorTexto = "";
+    if (tipo === 'exito') {
+        mensaje.style.background = "#dcfce7";
+        colorTexto = "#16a34a";
+        mensaje.style.borderColor = "#bbf7d0";
+    } else if (tipo === 'advertencia') {
+        mensaje.style.background = "#fef3c7";
+        colorTexto = "#d97706";
+        mensaje.style.borderColor = "#fde68a";
+    } else if (tipo === 'info') {
+        mensaje.style.background = "#e0f2fe";
+        colorTexto = "#0369a1";
+        mensaje.style.borderColor = "#bae6fd";
+    } else {
+        mensaje.style.background = "#fee2e2";
+        colorTexto = "#dc2626";
+        mensaje.style.borderColor = "#fecaca";
+    }
+
+    mensaje.style.color = colorTexto;
+    btnCerrar.style.color = colorTexto;
+    
+    btnCerrar.onmouseover = () => { btnCerrar.style.background = colorTexto + "1a"; };
+    btnCerrar.onmouseout = () => { btnCerrar.style.background = "transparent"; };
+}
+
+function ocultarMensaje() {
+    const mensaje = document.getElementById("mensaje");
+    mensaje.style.display = "none";
+    document.getElementById("textoMensaje").textContent = "";
+}
+
+function distanciaMetros(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+function fichar() {
+    if (procesandoFichaje) return; 
+    vibrarHaptica();
+
+    const socioGuardado = localStorage.getItem('gmadrid_socio_actual');
+    const nombreSocioSelect = document.getElementById("nombre").value;
+    const nombre = socioGuardado || nombreSocioSelect;
+
+    if(!nombre){
+        mostrarMensaje("Socio no identificado.", "error");
+        return;
+    }
+
+    if(!navigator.geolocation){
+        mostrarMensaje("Geolocalización no soportada por el navegador.", "error");
+        return;
+    }
+
+    procesandoFichaje = true;
+    mostrarSpinner("Obteniendo ubicación GPS...");
+
+    const opcionesGeo = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    };
+
+    navigator.geolocation.getCurrentPosition(
+        function(posicion){
+            const lat = posicion.coords.latitude;
+            const lon = posicion.coords.longitude;
+            
+            let grupoAsistencia = "Desconocido";
+            const selectNombre = document.getElementById("nombre");
+            if (selectNombre && selectNombre.options.length > 0) {
+                for (let opt of selectNombre.options) {
+                    if (opt.text === nombre && opt.parentElement.label) {
+                        grupoAsistencia = opt.parentElement.label;
+                        break;
+                    }
+                }
+            }
+            
+            const distancia = distanciaMetros(lat, lon, LATITUD_PERMITIDA, LONGITUD_PERMITIDA);
+
+            if(distancia <= RADIO_METROS){
+                const ahora = new Date();
+                const fechaStr = ahora.toLocaleDateString('es-ES');
+                const horaStr = ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const formatoCompleto = `${fechaStr} a las ${horaStr}`;
+
+                const registro = {
+                    nombre,
+                    hora: horaStr,
+                    fecha: fechaStr,
+                    diaSemana: grupoAsistencia
+                };
+                
+                guardarFirebase(registro).then(guardado => {
+                    procesandoFichaje = false;
+                    if(guardado){
+                        mostrarMensaje(`Asistencia registrada (${formatoCompleto}).`, "exito");
+                        mostrarEstadoFichaje(true, formatoCompleto);
+                    }
+                });
+            }else{
+                procesandoFichaje = false;
+                mostrarMensaje("Fuera del radio permitido respecto al Replay.", "advertencia");
+            }
+        },
+        function(error){
+            procesandoFichaje = false;
+            console.error("Error GPS:", error);
+            mostrarMensaje("Ubicación no detectada. Revisa los permisos GPS.", "error");
+        },
+        opcionesGeo
+    );
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  where,
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA5vN0AbfISP-g-TrvX4Y34cZM8lejrYUM",
+  authDomain: "fichaje-gmadrid.firebaseapp.com",
+  projectId: "fichaje-gmadrid",
+  storageBucket: "fichaje-gmadrid.firebasestorage.app",
+  messagingSenderId: "794464212993",
+  appId: "1:794464212993:web:7cd442168aa97f63d9c800"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function sanitizarId(nombre) {
+  return nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_");
+}
+
+window.verificarEstadoInicial = async function() {
+  const socioGuardado = localStorage.getItem('gmadrid_socio_actual');
+  if (!socioGuardado) return;
+
+  mostrarSpinner("Verificando dispositivo...");
+  try {
+    const idDoc = sanitizarId(socioGuardado);
+    const refCredencial = doc(db, "credenciales_socios", idDoc);
+    const snapCredencial = await getDoc(refCredencial);
+    const deviceIdActual = obtenerIdUnicoDispositivo();
+
+    if (snapCredencial.exists() && snapCredencial.data().deviceId === deviceIdActual) {
+      document.getElementById('bloqueSelector').style.display = 'none';
+      const bloqueSaludo = document.getElementById('bloqueSaludo');
+      document.getElementById('textoSaludo').textContent = `¡Hola, ${socioGuardado}!`;
+      bloqueSaludo.style.display = 'block';
+
+      document.getElementById('buscadorSocio').value = socioGuardado;
+      document.getElementById('nombre').value = socioGuardado;
+
+      await comprobarFichajeSemanalEnBD(socioGuardado);
+    } else {
+      localStorage.removeItem('gmadrid_socio_actual');
+      ocultarSpinner();
+      document.getElementById('bloqueSelector').style.display = 'block';
+      document.getElementById('bloqueSaludo').style.display = 'none';
+    }
+  } catch (error) {
+    console.error("Error verificando estado inicial:", error);
+    mostrarMensaje("Error al conectar con la base de datos.", "error");
+  }
+};
+
+window.verificarDispositivoYFichaje = async function(nombreSocio) {
+  mostrarSpinner("Verificando credenciales...");
+  try {
+    const idDoc = sanitizarId(nombreSocio);
+    const refCredencial = doc(db, "credenciales_socios", idDoc);
+    const snapCredencial = await getDoc(refCredencial);
+    const deviceIdActual = obtenerIdUnicoDispositivo();
+
+    if (snapCredencial.exists()) {
+      const data = snapCredencial.data();
+      if (data.deviceId === deviceIdActual) {
+        document.getElementById("bloquePin").style.display = "none";
+        document.getElementById("pinSocio").value = "";
+        
+        document.getElementById('bloqueSelector').style.display = 'none';
+        const bloqueSaludo = document.getElementById('bloqueSaludo');
+        document.getElementById('textoSaludo').textContent = `¡Hola, ${nombreSocio}!`;
+        bloqueSaludo.style.display = 'block';
+
+        await comprobarFichajeSemanalEnBD(nombreSocio);
+      } else {
+        ocultarSpinner();
+        document.getElementById("bloquePin").style.display = "block";
+        document.getElementById("etiquetaPinLabel").textContent = "Introduce tu PIN de 4 dígitos:";
+        document.getElementById("pinSocio").value = "";
+        document.getElementById("ayudaPinCreacion").style.display = "none";
+        document.getElementById("btnFichar").style.display = "none";
+        document.getElementById("estadoFichajeSemana").style.display = "none";
+      }
+    } else {
+      ocultarSpinner();
+      document.getElementById("bloquePin").style.display = "block";
+      document.getElementById("etiquetaPinLabel").textContent = "Crea tu PIN nuevo de 4 dígitos:";
+      document.getElementById("pinSocio").value = "";
+      document.getElementById("ayudaPinCreacion").style.display = "block";
+      document.getElementById("btnFichar").style.display = "none";
+      document.getElementById("estadoFichajeSemana").style.display = "none";
+    }
+  } catch (error) {
+    console.error("Error verificando credenciales:", error);
+    mostrarMensaje("Error al conectar con la base de datos.", "error");
+  }
+};
+
+window.validarOConfigurarPin = async function() {
+  vibrarHaptica();
+  const socioGuardado = localStorage.getItem('gmadrid_socio_actual');
+  const nombreSocioSelect = document.getElementById("nombre").value;
+  const nombreSocio = socioGuardado || nombreSocioSelect;
+  const pinInput = document.getElementById("pinSocio").value.trim();
+
+  if (!nombreSocio) {
+    mostrarMensaje("Socio no identificado.", "error");
+    return;
+  }
+
+  if (pinInput.length !== 4 || isNaN(pinInput)) {
+    mostrarMensaje("El PIN debe tener exactamente 4 dígitos numéricos.", "advertencia");
+    return;
+  }
+
+  mostrarSpinner("Validando PIN...");
+  try {
+    const idDoc = sanitizarId(nombreSocio);
+    const refCredencial = doc(db, "credenciales_socios", idDoc);
+    const snapCredencial = await getDoc(refCredencial);
+    const deviceIdActual = obtenerIdUnicoDispositivo();
+
+    if (snapCredencial.exists()) {
+      const data = snapCredencial.data();
+      if (data.pin === pinInput) {
+        await setDoc(refCredencial, { pin: pinInput, deviceId: deviceIdActual }, { merge: true });
+        document.getElementById("bloquePin").style.display = "none";
+        document.getElementById("pinSocio").value = "";
+        
+        document.getElementById('bloqueSelector').style.display = 'none';
+        const bloqueSaludo = document.getElementById('bloqueSaludo');
+        document.getElementById('textoSaludo').textContent = `¡Hola, ${nombreSocio}!`;
+        bloqueSaludo.style.display = 'block';
+
+        await comprobarFichajeSemanalEnBD(nombreSocio);
+        mostrarMensaje("Dispositivo vinculado correctamente.", "exito");
+      } else {
+        mostrarMensaje("PIN incorrecto. Inténtalo de nuevo.", "error");
+      }
+    } else {
+      await setDoc(refCredencial, { pin: pinInput, deviceId: deviceIdActual });
+      document.getElementById("bloquePin").style.display = "none";
+      document.getElementById("pinSocio").value = "";
+      
+      document.getElementById('bloqueSelector').style.display = 'none';
+      const bloqueSaludo = document.getElementById('bloqueSaludo');
+      document.getElementById('textoSaludo').textContent = `¡Hola, ${nombreSocio}!`;
+      bloqueSaludo.style.display = 'block';
+
+      await comprobarFichajeSemanalEnBD(nombreSocio);
+      mostrarMensaje("PIN configurado y dispositivo vinculado con éxito.", "exito");
+    }
+  } catch (error) {
+    console.error("Error procesando PIN:", error);
+    mostrarMensaje("Error al procesar el PIN en la base de datos.", "error");
+  }
+};
+
+async function comprobarFichajeSemanalEnBD(nombreSocio) {
+  try {
+    const q = query(
+      collection(db, "fichajes"),
+      where("nombre", "==", nombreSocio)
+    );
+
+    const resultados = await getDocs(q);
+    const { lunes, domingo } = obtenerRangoSemanaActual();
+    let fichadoEstaSemana = false;
+    let fechaHoraFichaje = "";
+
+    resultados.forEach(docSnap => {
+      const data = docSnap.data();
+      const fechaDoc = parsearFechaES(data.fecha);
+      if (fechaDoc && fechaDoc >= lunes && fechaDoc <= domingo) {
+        fichadoEstaSemana = true;
+        fechaHoraFichaje = `${data.fecha} a las ${data.hora}`;
+      }
+    });
+
+    ocultarSpinner();
+    if (fichadoEstaSemana) {
+      mostrarEstadoFichaje(true, fechaHoraFichaje);
+    } else {
+      mostrarEstadoFichaje(false, "");
+    }
+  } catch (error) {
+    ocultarSpinner();
+    console.error("Error al verificar fichaje semanal:", error);
+    mostrarMensaje("Error al verificar el estado en la base de datos.", "error");
+  }
+}
+
+window.guardarFirebase = async function(registro) {
+  try {
+    const q = query(
+      collection(db, "fichajes"),
+      where("nombre", "==", registro.nombre)
+    );
+    const resultados = await getDocs(q);
+    const { lunes, domingo } = obtenerRangoSemanaActual();
+    let yaFicho = false;
+
+    resultados.forEach(docSnap => {
+      const data = docSnap.data();
+      const fechaDoc = parsearFechaES(data.fecha);
+      if (fechaDoc && fechaDoc >= lunes && fechaDoc <= domingo) {
+        yaFicho = true;
+      }
+    });
+
+    if (yaFicho) {
+      const formatoCompleto = `${registro.fecha} a las ${registro.hora}`;
+      mostrarMensaje("Ya existe un fichaje tuyo registrado esta semana.", "info");
+      mostrarEstadoFichaje(true, formatoCompleto);
+      return false;
+    }
+
+    const idDocumento = `${sanitizarId(registro.nombre)}_${registro.fecha.replace(/\//g,"-")}`;
+
+    await setDoc(
+      doc(db, "fichajes", idDocumento),
+      registro
+    );
+
+    return true;
+  } catch (error) {
+    console.error("Error guardando:", error);
+    mostrarMensaje("Error de conexión con la base de datos.", "error");
+    return false;
+  }
+};
+</script>
+
+</body>
+</html>

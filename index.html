@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -245,7 +245,6 @@ header, main, footer{
     margin-bottom: 6px;
 }
 
-/* Enlace cambiar socio en tono morado acorde al sitio */
 .enlace-cambiar-socio {
     font-size: 13px;
     color: #750087;
@@ -265,9 +264,6 @@ header, main, footer{
     margin-bottom: 18px;
 }
 
-/* ==========================================
-   INPUTS CON DESTACADO NORMAL Y BORDE ANIMADO ARCOÍRIS AL FOCO
-   ========================================== */
 @keyframes brilloInputArcoiris {
     0% { filter: hue-rotate(0deg); }
     100% { filter: hue-rotate(360deg); }
@@ -319,9 +315,7 @@ header, main, footer{
     z-index: 2;
 }
 
-/* ==========================================
-   BOTÓN MOSTRAR/OCULTAR CONTRASEÑA (ESTILO GLASS)
-   ========================================== */
+/* BOTÓN MOSTRAR/OCULTAR CONTRASEÑA */
 .btn-toggle-pin {
     position: absolute;
     right: 8px;
@@ -347,14 +341,10 @@ header, main, footer{
     border-color: rgba(117, 0, 135, 0.2);
 }
 
-/* ==========================================
-   LISTA DE SUGERENCIAS (CORREGIDA PARA QUE FLOTE POR ENCIMA)
-   ========================================== */
+/* LISTA DE SUGERENCIAS FLOTANTE GLOBAL (POSICIONAMIENTO INTELIGENTE) */
 #listaSugerencias {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    width: 100%;
+    display: none;
+    position: fixed;
     max-height: 200px;
     overflow-y: auto;
     background: rgba(255, 255, 255, 0.99);
@@ -363,8 +353,12 @@ header, main, footer{
     border: 1px solid var(--border-color);
     border-radius: 12px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-    z-index: 9999;
+    z-index: 999999;
     box-sizing: border-box;
+}
+
+#listaSugerencias.mostrar {
+    display: block;
 }
 
 .sugerencia-item {
@@ -495,9 +489,6 @@ header, main, footer{
     color: var(--text-main);
 }
 
-/* ==========================================
-   CONTENEDOR PRINCIPAL CON BARRA IZQUIERDA ARCOÍRIS (SIN OVERFLOW HIDDEN)
-   ========================================== */
 .container{
     background: var(--card-bg);
     backdrop-filter: blur(14px);
@@ -507,7 +498,6 @@ header, main, footer{
     box-shadow: 0 16px 35px rgba(117, 0, 135, 0.15);
     border: 1px solid var(--border-color);
     position: relative;
-    /* QUITADO EL OVERFLOW HIDDEN PARA QUE EL BUSCADOR NO SE CORTE */
     animation: entrarCentro 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -561,7 +551,6 @@ header, main, footer{
     font-weight: 500;
 }
 
-/* BOTONES CON GRADIENTE ARCOÍRIS PREMIUM */
 @keyframes bgArcoirisBtn {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -606,7 +595,7 @@ button:disabled {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 9999;
+    z-index: 99999;
     width: 90%;
     max-width: 500px;
     font-weight: 600;
@@ -688,6 +677,9 @@ button:disabled {
 <!-- Elemento decorativo esquina opuesta -->
 <div class="esquina-opuesta-bg"></div>
 
+<!-- LISTA DE SUGERENCIAS FLOTANTE GLOBAL (EVITA CORTES CON EL FOOTER/TABLA) -->
+<div id="listaSugerencias" class="sugerencias-global"></div>
+
 <div id="mensaje">
     <div class="mensaje-contenido">
         <span id="textoMensaje"></span>
@@ -723,7 +715,6 @@ button:disabled {
                 <div class="buscador-container">
                     <span class="icono-busqueda">🔍</span>
                     <input type="text" id="buscadorSocio" placeholder="Empieza a escribir tu nombre..." autocomplete="off" oninput="filtrarSocios()" onfocus="mostrarSugerencias()">
-                    <div id="listaSugerencias" style="display:none;"></div>
                 </div>
             </div>
 
@@ -732,7 +723,7 @@ button:disabled {
             <div id="bloquePin" style="display: none; margin-top: 18px;">
                 <label for="pinSocio"><b id="etiquetaPinLabel">Introduce tu PIN de 4 dígitos:</b></label>
                 <div class="input-pin-wrapper">
-                    <input type="password" id="pinSocio" maxlength="4" placeholder="••••" inputmode="numeric">
+                    <input type="password" id="pinSocio" maxlength="4" placeholder="••••" inputmode="numeric" onkeydown="if(event.key === 'Enter') validarOConfigurarPin()">
                     <button type="button" class="btn-toggle-pin" onclick="toggleVisibilidadPin()">Mostrar</button>
                 </div>
                 <div id="ayudaPinCreacion" class="ayuda-pin" style="display: none;">Crear este código solo se te pedirá esta única vez. Anótalo y recuérdalo por si necesitas usarlo en otros dispositivos o aplicaciones.</div>
@@ -767,12 +758,17 @@ window.addEventListener('DOMContentLoaded', () => {
     inicializarListaSocios();
     verificarEstadoInicial();
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.buscador-container')) {
+    window.addEventListener('click', (e) => {
+        if (!e.target.closest('#buscadorSocio') && !e.target.closest('#listaSugerencias')) {
             const lista = document.getElementById('listaSugerencias');
-            if(lista) lista.style.display = 'none';
+            if(lista) lista.classList.remove('mostrar');
         }
     });
+
+    window.addEventListener('scroll', () => {
+        const lista = document.getElementById('listaSugerencias');
+        if(lista) lista.classList.remove('mostrar');
+    }, { passive: true });
 
     const container = document.getElementById("floating-games-container");
     const gameEmotes = ["🎲", "♟️", "👑", "♞", "🃏", "🎯", "🧩", "🦄", "🌈"];
@@ -914,10 +910,11 @@ function filtrarSocios() {
 
 function renderizarSugerencias(socios) {
     const contenedor = document.getElementById('listaSugerencias');
+    const inputBuscador = document.getElementById('buscadorSocio');
     contenedor.innerHTML = '';
     
     if (socios.length === 0) {
-        contenedor.style.display = 'none';
+        contenedor.classList.remove('mostrar');
         return;
     }
 
@@ -928,12 +925,26 @@ function renderizarSugerencias(socios) {
         div.onclick = () => seleccionarSocioBuscador(s.nombre);
         contenedor.appendChild(div);
     });
-    contenedor.style.display = 'block';
+
+    const rect = inputBuscador.getBoundingClientRect();
+    contenedor.classList.add('mostrar');
+    
+    let left = rect.left;
+    let top = rect.bottom + 4;
+    let width = rect.width;
+
+    if (top + 200 > window.innerHeight - 10) {
+        top = rect.top - Math.min(200, contenedor.scrollHeight) - 4;
+    }
+
+    contenedor.style.left = left + 'px';
+    contenedor.style.top = top + 'px';
+    contenedor.style.width = width + 'px';
 }
 
 function seleccionarSocioBuscador(nombreSocio) {
     document.getElementById('buscadorSocio').value = nombreSocio;
-    document.getElementById('listaSugerencias').style.display = 'none';
+    document.getElementById('listaSugerencias').classList.remove('mostrar');
     document.getElementById('nombre').value = nombreSocio;
     gestionarSocio();
 }

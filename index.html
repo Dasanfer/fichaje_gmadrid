@@ -573,11 +573,6 @@ button{
     transition: transform 0.15s ease, filter 0.2s ease;
 }
 
-button:hover:not(:disabled){
-    filter: brightness(1.12);
-    transform: translateY(-1px);
-}
-
 button:active:not(:disabled) {
     transform: scale(0.97);
 }
@@ -695,8 +690,8 @@ button:disabled {
 <div class="wrapper-principal">
     <header>
         <div class="header-principal">
-            <div class="hub-avatar">🎲</div>
-            <h1>Fichaje de Asistencia</h1>
+            <div class="hub-avatar">✍️</div>
+            <h1>Sistema de Fichaje</h1>
             <h2>GMadrid Juegos de Mesa 🏳️‍🌈</h2>
         </div>
     </header>
@@ -1163,7 +1158,7 @@ function fichar() {
     const nombre = socioGuardado || nombreSocioSelect;
 
     if(!nombre){
-        mostrarMensaje("Socio no identificado.", "error");
+        mostrarMensaje("Socio no identificado. Cierre y abra la aplicación.", "error");
         return;
     }
 
@@ -1179,7 +1174,7 @@ function fichar() {
     }
 
     if(!navigator.geolocation){
-        mostrarMensaje("Geolocalización no soportada por el navegador.", "error");
+        mostrarMensaje("Geolocalización no soportada por el navegador. Inténtelo de nuevo o cierre y abra la aplicación.", "error");
         return;
     }
 
@@ -1223,13 +1218,13 @@ function fichar() {
                 });
             }else{
                 procesandoFichaje = false;
-                mostrarMensaje("Fuera del radio permitido respecto al Replay.", "advertencia");
+                mostrarMensaje("Fuera del radio permitido. Active la ubicación de su dispositivo e inténtelo de nuevo.", "advertencia");
             }
         },
         function(error){
             procesandoFichaje = false;
             console.error("Error GPS:", error);
-            mostrarMensaje("Ubicación no detectada. Revisa los permisos GPS.", "error");
+            mostrarMensaje("Ubicación no detectada. Active la ubicación de su dispositivo y revise los permisos GPS.", "error");
         },
         opcionesGeo
     );
@@ -1302,7 +1297,7 @@ window.verificarEstadoInicial = async function() {
     }
   } catch (error) {
     console.error("Error verificando estado inicial:", error);
-    mostrarMensaje("Error al conectar con la base de datos.", "error");
+    mostrarMensaje("Error al conectar con la base de datos. Limpie la caché/historial de su navegador o inténtelo de nuevo.", "error");
   }
 };
 
@@ -1346,7 +1341,7 @@ window.verificarDispositivoYFichaje = async function(nombreSocio) {
     }
   } catch (error) {
     console.error("Error verificando credenciales:", error);
-    mostrarMensaje("Error al conectar con la base de datos.", "error");
+    mostrarMensaje("Error al conectar con la base de datos. Limpie la caché/historial de su navegador o inténtelo de nuevo.", "error");
   }
 };
 
@@ -1357,7 +1352,7 @@ window.validarOConfigurarPin = async function() {
   const pinInput = document.getElementById("pinSocio").value.trim();
 
   if (!nombreSocio) {
-    mostrarMensaje("Socio no identificado.", "error");
+    mostrarMensaje("Socio no identificado. Cierre y abra la aplicación.", "error");
     return;
   }
 
@@ -1406,7 +1401,7 @@ window.validarOConfigurarPin = async function() {
     }
   } catch (error) {
     console.error("Error procesando PIN:", error);
-    mostrarMensaje("Error al procesar el PIN en la base de datos.", "error");
+    mostrarMensaje("Error al procesar el PIN en la base de datos. Limpie la caché/historial de su navegador o inténtalo de nuevo.", "error");
   }
 };
 
@@ -1486,7 +1481,7 @@ async function comprobarFichajeSemanalEnBD(nombreSocio) {
   } catch (error) {
     ocultarSpinner();
     console.error("Error al verificar fichaje semanal:", error);
-    mostrarMensaje("Error al verificar el estado en la base de datos.", "error");
+    mostrarMensaje("Error al verificar el estado en la base de datos. Limpie la caché/historial de su navegador o inténtalo de nuevo.", "error");
   }
 }
 
@@ -1548,7 +1543,7 @@ window.guardarFirebase = async function(registro) {
     return true;
   } catch (error) {
     console.error("Error guardando:", error);
-    mostrarMensaje("Error de conexión con la base de datos.", "error");
+    mostrarMensaje("Error de conexión con la base de datos. Limpie la caché/historial de su navegador o inténtalo de nuevo.", "error");
     return false;
   }
 };
